@@ -1,0 +1,6 @@
+flask==1.1.2 
+pypdf2==2.10.2
+gtts==2.2.4
+fpdf==1.7.2
+selenium==4.3.0
+werkzeug==2.0.3

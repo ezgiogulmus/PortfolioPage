@@ -1,4 +1,3 @@
-from cgitb import html
 from flask import Flask, render_template, request, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequestKeyError
