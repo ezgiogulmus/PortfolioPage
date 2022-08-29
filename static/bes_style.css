@@ -1,0 +1,50 @@
+body{
+    margin: 0;
+    height: 100vh;
+    background-image: url("bes_bg.jpg");
+    background-size: 100%;
+}
+
+h1 { 
+    text-align: center;
+    margin: 0;
+    padding: 30px;
+}
+
+hr {
+    width: 80%;
+    border: solid black;
+    border-block-end-style: double;
+    border-block-end-width: thick;
+}
+
+.form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1em;
+    line-height: 1.5em;
+}
+
+p {
+    font-size: 1.3em;
+}
+.items {
+    padding: 0 2em;
+}
+/* .form1 {
+    position: absolute;
+    left: 10em;
+}
+.form2 {
+    position: absolute;
+    left: 45em;
+    top: 10em;
+}
+
+#submit {
+    position: absolute;
+    left: 25em;
+    top: 25em;
+    font-size: 1.3em;
+} */

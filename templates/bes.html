@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/bes_style.css">
+    <title>Retirement Investment</title>
+</head>
+<body>
+    <h1>The funds from Turkiye Hayat Emeklilik (Turkish retirement investment funds) are listed below.<br>You will get a report of your selections as well as the top performing funds.</h1>
+    <hr>
+    <form action="{{url_for('bes')}}" method="post">
+        <div class="form">
+            <div class="items">
+                <em><p>Funds with interest:</p></em>
+                {% for i in funds[0]: %}
+                <input type="checkbox" name="{{i[0]}}" id="{{i[0]}}">
+                <label for="{{i[0]}}">{{i[0]}}-{{i[1]}}</label><br>
+                {% endfor %}
+            </div>  
+            <div class="items">
+                <em><p>Funds without interest:</p></em>
+                {% for i in funds[1]: %}
+                <input type="checkbox" name="{{i[0]}}" id="{{i[0]}}">
+                <label for="{{i[0]}}">{{i[0]}}-{{i[1]}}</label><br>
+                {% endfor %}
+                <input type="submit" value="Submit" style="margin: 2em 5em; font-size: 1.2em;">
+            </div>
+        </div>
+    </form>    
+</body>
+<footer>
+
+</footer>
+</html>

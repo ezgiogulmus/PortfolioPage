@@ -1,0 +1,28 @@
+img {
+    height: 100vh;
+    position: absolute;
+    top: 0;
+}
+
+body {
+    margin: 0;
+}
+
+div {
+    position: relative;
+    bottom: 50%;
+    left: 10%;
+}
+
+h1 {
+    color: aliceblue;
+    font-size: 5em;
+}
+
+textarea {
+    font-size: 2em;
+}
+
+button {
+    font-size: 2em;
+}

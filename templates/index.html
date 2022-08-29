@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ezgi's Portfolio</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="icon" href="../static/favicon.ico">
+
+</head>
+<body>
+    <div class="contents">
+        <h1>These are some of the things I built while learning coding.<br>Try them and let me know how it goes.</h1>
+        <div class="intro">
+            <img src="../static//ezgi_icon.png" alt="Ezgi icon image" id="icon">
+            <div class="items">
+                <li><a href="{{url_for('mors')}}" method="post">Morse Code</a></li>
+                <li><a href="{{url_for('pdf')}}" method="post">PDF Converter</a></li>
+                <li><a href="{{url_for('bes')}}" method="post">Investment Update from <i>Turkiye Hayat Emeklilik</i></a></li>
+            </div>
+        </div>
+    </div>
+</body>
+<footer>
+    <div class="contact">
+        <hr>
+        <a href="mailto:ezgiogulmus@gmail.com"><img src="../static/email.png" alt="e-mail"></a> 
+        <a href="https://github.com/ezgiogulmus"><img src="../static/github.png" alt="GitHub"></a>
+        <a href="https://www.linkedin.com/in/ezgi-%C3%B6%C4%9F%C3%BClm%C3%BC%C5%9F-227a82233"><img src="../static/linkedin-logo.png" alt="LinkedIn"></a>
+    </div>
+</footer>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            line-height: 3em;
+            text-align: center;
+            margin: 0;
+        }
+        img {
+            height: 100vh;
+            width: 100%;
+            position: absolute;
+        }
+        .card {
+            position: absolute;
+            background: rgb(236, 232, 221);
+            width: 30em;
+            transform: translateY(40%);
+            font-size: 1.5em;
+            padding-bottom: 1em;
+        }
+        .title {
+            margin: 2em;
+        }
+        hr {
+            width: inherit;
+        }
+        u {
+            line-break: 2em;
+        }
+        .no_input {
+            width: 3em;
+        }
+    </style>
+    <title>PDF to Audio Converter</title>
+</head>
+<body>
+    <img src="../static/pdf_bg.jpg">
+    <div class="card">
+        <div class="title">
+            <h1>Upload a PDF file</h1>
+            <hr>
+        </div>
+        <form action="{{url_for('pdf')}}" method="post" enctype=multipart/form-data>
+            <input type="file" name="pdf-file">
+            <br>
+            <label for="page">Page number from </label>
+            <input type="number" class="no_input" name="first-page" placeholder="1"> 
+            <label for="page"> to </label><input type="number" class="no_input" name="last-page" placeholder="-1">
+            <p>(Pick 1 to -1 for all pages.)</p>
+            <label for="type">Choose the data type to convert:</label>
+            <select id="type" name="type">
+              <option value="mp3">Audio</option>
+              <option value="txt">Text</option>
+            </select> 
+            <br>
+            <input type="submit" value="Upload">
+            
+        </form>
+        {% for msg in get_flashed_messages() %}
+            <h2>{{ msg }}</h2>
+        {% endfor %}
+    </div>
+    
+</body>
+</html>

@@ -1,0 +1,36 @@
+Name,Fund,Interest (+/-)
+Dinamik Değişken EYF,VEE,1
+Para Piyasası EYF,VEL,1
+Hisse Senedi EYF,VEH,1
+Standart EYF,VEK,1
+Birinci Değişken EYF,VEG,1
+Kamu Dış Borçlanma Araçları EYF,VET,1
+Temkinli Değişken EYF,VEU,1
+Borçlanma Araçları EYF,VES,1
+Teknoloji Sektörü Hisse Senedi EYF,TBJ,1
+Birinci Yaşam Döngüsü EYF,TML,1
+İkinci Yaşam Döngüsü EYF,TYJ,1
+Üçüncü Yaşam Döngüsü EYF,TJY,1
+Sürdürülebilirlik Hisse Senedi EYF,ZHB,1
+Dengeli Değişken EYF,ZHE,1
+Kamu Borçlanma Araçları EYF,ZHG,1
+Kamu Dış Borç. Araç. (ABD Doları 0-5 Yıl Vadeli ),HHG,1
+BIST-30 Dışı Şirketler Hisse Senedi EYF,HHB,1
+Agresif Değişken EYF,HHE,1
+Karma EYF,HHY,1
+Katılım Standart EYF,VGB,0
+Katılım Dengeli Değişken EYF,VEB,0
+Altın Katılım EYF,VGA,0
+Kıymetli Madenler Katılım EYF,VGD,0
+Katılım Hisse Senedi EYF,VYB,0
+Kamu Dış Kira Sertifikaları Katılım EYF,ZHD,0
+Katılım Temkinli Değişken EYF,ZHF,0
+Katılım Agresif Değişken EYF,HHM,0
+Katılım Dinamik Değişken EYF,HHN,0
+Katılım Dinamik Değişken Grup EYF,VEY,0
+Turkcell Çalış. Yön. Pera 1 Değiş. Grup EYF,VGP,1
+Pera 2 Değişken Grup EYF,VGT,1
+Pera 3 Değişken Grup EYF,VGY,1
+Dinamik Değişken Grup EYF,VGE,1
+Katılım Katkı EYF,VER,0
+Katkı EYF,VEI,1
