@@ -10,7 +10,7 @@ from bes_report import Funds
 
 html
 app = Flask(__name__)
-UPLOAD_FOLDER = '/home/ezgi/OneDrive/Codes/Python/Coding_Uni/Portfolio/PortfolioPage/static/uploads/'
+UPLOAD_FOLDER = './static/uploads/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
 
 main_folder = app.config['UPLOAD_FOLDER'].split('uploads')[0]
