@@ -3,7 +3,6 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequestKeyError
 import os
 import json
-import pandas as pd
 from flask import send_from_directory
 from pdfconverter import ListenPDFs, empty_folder
 from bes_report import Funds
