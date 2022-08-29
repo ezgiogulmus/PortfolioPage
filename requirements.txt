@@ -8,3 +8,4 @@ gunicorn==20.1.0
 jinja2==2.11.3
 requests==2.27.1
 certifi==2022.6.15
+markupsafe==2.0.1
