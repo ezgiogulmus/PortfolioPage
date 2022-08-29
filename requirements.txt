@@ -9,3 +9,11 @@ jinja2==2.11.3
 requests==2.27.1
 certifi==2022.6.15
 markupsafe==2.0.1
+chardet==4.0.0
+click==8.0.4
+dominate==2.7.0
+Flask==1.1.2
+idna==3.3
+itsdangerous==2.0.1
+urllib3==1.26.9
+visitor==0.1.3
