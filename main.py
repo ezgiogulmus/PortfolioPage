@@ -8,7 +8,7 @@ from flask import send_from_directory
 from pdfconverter import ListenPDFs, empty_folder
 from bes_report import Funds
 
-html
+
 app = Flask(__name__)
 UPLOAD_FOLDER = './static/uploads/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
@@ -21,7 +21,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 def home():
     return render_template("index.html")
 
-
+#INVESTMENT
 @app.route('/bes', methods=['GET', 'POST'])
 def bes():
     empty_folder(f"{app.config['UPLOAD_FOLDER']}/*")
@@ -69,8 +69,6 @@ def mors():
     return render_template('mors.html')
 
 # PDF CONVERTER
-
-
 @app.route('/pdf', methods=['GET', 'POST'])
 def pdf():
     if request.method == "POST":
