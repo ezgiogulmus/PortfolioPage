@@ -55,8 +55,6 @@ def empty_folder(file_path):
 
 # import boto3
 # from werkzeug.utils import secure_filename
-# ACCESS_ID = "AKIAWO2RDXS25ZH6B3UI"
-# ACCESS_SECRET = "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"
 S3_BUCKET = "ezgiyobucket"
 
 
