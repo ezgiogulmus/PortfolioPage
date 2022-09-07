@@ -1,4 +1,4 @@
-from selenium.webdriver import Chrome
+from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By 
 import datetime
@@ -40,11 +40,13 @@ class Funds:
     def get_new_file(self):
         bes_url = "https://thefon.turkiyehayatemeklilik.com.tr/TurkiyeHayatEmeklilik/Fonlar/Getiri"
 
-        chromeDriverPath = f'{self.main_folder}chromedriver'
-        opts = Options()
+        opts = ChromeOptions()
+        opts.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+        opts.add_argument("--headless")
+        opts.add_argument("--disable-dev-shm-usage")
+        opts.add_argument("--no-sandbox")
         opts.add_experimental_option("detach", True)
-        opts.add_argument('headless')
-        driver = Chrome(chromeDriverPath, options=opts)
+        driver = Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=opts)
         driver.get(bes_url)
 
         time.sleep(3)
