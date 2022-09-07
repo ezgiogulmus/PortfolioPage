@@ -6,9 +6,11 @@ import json
 from flask import send_from_directory
 from pdfconverter import ListenPDFs, empty_folder
 from bes_report import Funds
-
+import boto3
 
 app = Flask(__name__)
+S3_BUCKET = "ezgiyobucket"
+
 MYDIR = os.path.dirname(__file__)
 STATIC_FOLDER = 'static/'
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
@@ -75,6 +77,7 @@ def pdf():
             flash('No file part.')
             return redirect(request.url)
         pdf_file = request.files['pdf-file']
+        filename = secure_filename(pdf_file.filename)
         if pdf_file.filename == '':
             flash('Select a file.')
             return redirect(request.url)
@@ -82,31 +85,53 @@ def pdf():
             flash('Only PDF files are accepted.')
             return redirect(request.url)
         else:
-            filename = secure_filename(pdf_file.filename)
-            file_path = os.path.join(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), filename)
-            pdf_file.save(file_path)
             if request.form['first-page'] == "":
                 first_page = 1
-            if request.form['last-page'] == "":
-                last_page = -1
-            if int(request.form['last-page']) > 0 and int(request.form['last-page']) < int(request.form['first-page']):
-                flash('Select at least 1 page.')
-                return redirect(request.url)
             else:
                 first_page = int(request.form['first-page'])
-                last_page = int(request.form['last-page'])
-            converter = ListenPDFs(file_path, first_page, last_page)
-            text_file = converter.get_text()
-            text_path = os.path.join(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), text_file)
-            with open(text_path, "r") as file:
-                text = file.read()
-            if request.form['type'] == 'mp3':
-                mp3 = converter.save_mp3(text)
-                return send_from_directory(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), mp3, as_attachment=True)
+            if request.form['last-page'] == "":
+                last_page = -1
             else:
-                return send_from_directory(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), text_file, as_attachment=True)
+                last_page = int(request.form['last-page'])
+            if last_page > 0 and last_page < first_page:
+                flash('Select at least 1 page.')
+                return redirect(request.url)
+            s3 = boto3.client(
+                "s3")
+            out = upload_file_to_s3(s3, pdf_file, filename, pdf_file.content_type)
+            if out == False:
+                flash("Unable to upload, try again")
+                return redirect(request.url)
+            else:
+                pdf_url = s3.generate_presigned_url('get_object',
+                                    Params={'Bucket': S3_BUCKET, 'Key': filename},
+                                    ExpiresIn=3600)
+                # print(pdf_url)
+                converter = ListenPDFs(pdf_url, first_page, last_page)
+                status = converter.save_mp3(f"{filename.rsplit('.', 1)[0]}.mp3")
+                # upload_file_to_s3(s3, mp3_file, f"{filename.rsplit('.', 1)[0]}.mp3", "audio/mpeg")
+                if status:
+                    mp3_url = s3.generate_presigned_url('get_object',
+                                        Params={'Bucket': S3_BUCKET, 'Key': f"{filename.rsplit('.', 1)[0]}.mp3"},
+                                        ExpiresIn=3600)
+                    return redirect(mp3_url)
     return render_template("pdf.html")
     
+
+def upload_file_to_s3(s3, file, filename, content_type, acl="public-read"):
+    try:
+        s3.upload_fileobj(
+            file,
+            S3_BUCKET,
+            filename,
+            ExtraArgs={
+                "ACL": acl
+            }
+        )
+    except Exception as e:
+        print("Something Happened: ", e)
+        return False
+    return True
 
 
 if __name__ == "__main__":
