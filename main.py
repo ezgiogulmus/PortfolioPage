@@ -9,10 +9,9 @@ from bes_report import Funds
 
 
 app = Flask(__name__)
-UPLOAD_FOLDER = './static/uploads/'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
-
-main_folder = app.config['UPLOAD_FOLDER'].split('uploads')[0]
+MYDIR = os.path.dirname(__file__)
+STATIC_FOLDER = 'static/'
+app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
@@ -23,8 +22,8 @@ def home():
 #INVESTMENT
 @app.route('/bes', methods=['GET', 'POST'])
 def bes():
-    empty_folder(f"{app.config['UPLOAD_FOLDER']}/*")
-    fund = Funds(main_folder)
+    empty_folder(f"{os.path.join(MYDIR, app.config['UPLOAD_FOLDER'])}/*")
+    fund = Funds(os.path.join(MYDIR, STATIC_FOLDER))
     fund_names = fund.get_fund_names()
     selected_funds = []
     if request.method == "POST":
@@ -44,12 +43,12 @@ def bes():
                 selected_funds.append(f[0])
         filename = fund.output(selected_funds)
         redirect(request.url)
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+        return send_from_directory(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), filename, as_attachment=True)
     return render_template("bes.html", funds=fund_names)
 
 # MORS
 def translate(text):
-    with open(f"{main_folder}mors.json", "r") as file:
+    with open(f"{os.path.join(MYDIR, STATIC_FOLDER)}mors.json", "r") as file:
         alphabet = json.load(file)
     mors = []
     for letter in text:
@@ -71,7 +70,7 @@ def mors():
 @app.route('/pdf', methods=['GET', 'POST'])
 def pdf():
     if request.method == "POST":
-        empty_folder(f"{app.config['UPLOAD_FOLDER']}/*")
+        empty_folder(f"{os.path.join(MYDIR, app.config['UPLOAD_FOLDER'])}/*")
         if 'pdf-file' not in request.files:
             flash('No file part.')
             return redirect(request.url)
@@ -84,7 +83,7 @@ def pdf():
             return redirect(request.url)
         else:
             filename = secure_filename(pdf_file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file_path = os.path.join(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), filename)
             pdf_file.save(file_path)
             if request.form['first-page'] == "":
                 first_page = 1
@@ -98,14 +97,14 @@ def pdf():
                 last_page = int(request.form['last-page'])
             converter = ListenPDFs(file_path, first_page, last_page)
             text_file = converter.get_text()
-            text_path = os.path.join(app.config['UPLOAD_FOLDER'], text_file)
+            text_path = os.path.join(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), text_file)
             with open(text_path, "r") as file:
                 text = file.read()
             if request.form['type'] == 'mp3':
                 mp3 = converter.save_mp3(text)
-                return send_from_directory(app.config['UPLOAD_FOLDER'], mp3, as_attachment=True)
+                return send_from_directory(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), mp3, as_attachment=True)
             else:
-                return send_from_directory(app.config['UPLOAD_FOLDER'], text_file, as_attachment=True)
+                return send_from_directory(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), text_file, as_attachment=True)
     return render_template("pdf.html")
     
 
