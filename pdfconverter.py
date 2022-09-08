@@ -1,6 +1,4 @@
-from cgitb import text
-from fileinput import filename
-from PyPDF2 import PdfReader, PdfFileReader
+from PyPDF2 import PdfReader
 from gtts import gTTS
 import glob
 import os
