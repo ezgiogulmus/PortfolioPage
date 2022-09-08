@@ -24,8 +24,7 @@ def home():
 #INVESTMENT
 @app.route('/bes', methods=['GET', 'POST'])
 def bes():
-    empty_folder(f"{os.path.join(MYDIR, app.config['UPLOAD_FOLDER'])}/*")
-    fund = Funds(os.path.join(MYDIR, STATIC_FOLDER))
+    fund = Funds(STATIC_FOLDER, S3_BUCKET)
     fund_names = fund.get_fund_names()
     selected_funds = []
     if request.method == "POST":
@@ -43,9 +42,7 @@ def bes():
                 pass
             else:
                 selected_funds.append(f[0])
-        filename = fund.output(selected_funds)
-        redirect(request.url)
-        return send_from_directory(os.path.join(MYDIR, app.config['UPLOAD_FOLDER']), filename, as_attachment=True)
+        return redirect(fund.output(selected_funds))
     return render_template("bes.html", funds=fund_names)
 
 # MORS
@@ -72,7 +69,6 @@ def mors():
 @app.route('/pdf', methods=['GET', 'POST'])
 def pdf():
     if request.method == "POST":
-        empty_folder(f"{os.path.join(MYDIR, app.config['UPLOAD_FOLDER'])}/*")
         if 'pdf-file' not in request.files:
             flash('No file part.')
             return redirect(request.url)
@@ -96,20 +92,18 @@ def pdf():
             if last_page > 0 and last_page < first_page:
                 flash('Select at least 1 page.')
                 return redirect(request.url)
-            s3 = boto3.client(
-                "s3")
-            out = upload_file_to_s3(s3, pdf_file, filename, pdf_file.content_type)
-            if out == False:
-                flash("Unable to upload, try again")
+            s3 = boto3.client("s3")
+            try:
+                s3.upload_fileobj(pdf_file, S3_BUCKET, filename, ExtraArgs={"ACL": "public-read"})
+            except Exception as e:
+                flash(f"Unable to upload.\n{e}\nTry again")
                 return redirect(request.url)
             else:
                 pdf_url = s3.generate_presigned_url('get_object',
                                     Params={'Bucket': S3_BUCKET, 'Key': filename},
                                     ExpiresIn=3600)
-                # print(pdf_url)
                 converter = ListenPDFs(pdf_url, first_page, last_page)
                 status = converter.save_mp3(f"{filename.rsplit('.', 1)[0]}.mp3")
-                # upload_file_to_s3(s3, mp3_file, f"{filename.rsplit('.', 1)[0]}.mp3", "audio/mpeg")
                 if status:
                     mp3_url = s3.generate_presigned_url('get_object',
                                         Params={'Bucket': S3_BUCKET, 'Key': f"{filename.rsplit('.', 1)[0]}.mp3"},
@@ -118,20 +112,6 @@ def pdf():
     return render_template("pdf.html")
     
 
-def upload_file_to_s3(s3, file, filename, content_type, acl="public-read"):
-    try:
-        s3.upload_fileobj(
-            file,
-            S3_BUCKET,
-            filename,
-            ExtraArgs={
-                "ACL": acl
-            }
-        )
-    except Exception as e:
-        print("Something Happened: ", e)
-        return False
-    return True
 
 
 if __name__ == "__main__":

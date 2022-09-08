@@ -14,7 +14,7 @@ class ListenPDFs:
         """
         self.file_path = file_path        
         self.raw_data = requests.get(file_path).content
-        self.data =  BytesIO(self.raw_data)  
+        self.data =  BytesIO(self.raw_data)
         self.reader = PdfReader(self.data)
     
         if last_page == -1:
