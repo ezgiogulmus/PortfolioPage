@@ -14,8 +14,10 @@ import io
 
 class Funds:
     def __init__(self, static_folder, bucket_name):
-        self.fund_names = pd.read_csv(f"{static_folder}fundnames.csv")
+        self.static_folder = static_folder
+        self.fund_names = pd.read_csv(f"{self.static_folder}fundnames.csv")
         self.s3_client = boto3.client("s3")
+        self.bucket_name = bucket_name
 
     def get_fund_names(self):
         interest = list(zip(self.fund_names[self.fund_names['Interest (+/-)'] == 1]["Fund"], self.fund_names[self.fund_names['Interest (+/-)'] == 1]["Name"]))
@@ -24,14 +26,14 @@ class Funds:
     
     def changes(self, selection):
         change = [[] for s in range(len(selection))]
-        bucket_content = self.s3_client.list_objects(Bucket=bucket_name)["Contents"]
+        bucket_content = self.s3_client.list_objects(Bucket=self.bucket_name)["Contents"]
         bes_files = [i["Key"] for i in bucket_content if "BES" in i["Key"]]
         bes_files.sort()
         dates = [file.split('_')[1].split('.')[0] for file in bes_files]
 
         for file in bes_files:
             bes_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': bucket_name, 'Key': file},
+                                            Params={'Bucket': self.bucket_name, 'Key': file},
                                             ExpiresIn=3600)
             data = requests.get(bes_url).content.decode("utf-8")
             new_data = dict(zip(data.split("{")[2].split('"')[3:-1:4], data.split("{")[4].split('"')[3:-1:4]))
@@ -89,11 +91,10 @@ class Funds:
         new_file = new_file.set_index("Fund").join(self.fund_names.set_index("Fund"), lsuffix="1_", rsuffix="2_").reset_index()
 
         s3 = boto3.resource('s3')
-        object = s3.Object(bucket_name, f'BES_{datetime.date.today()}.csv')
+        object = s3.Object(self.bucket_name, f'BES_{datetime.date.today()}.csv')
         object.put(Body=new_file.to_json().encode(), ACL="public-read")
 
     def output(self, selection):
-        self.get_new_file()
         change, dates, sorted_funds = self.changes(selection)
 
         fig_selected = plt.figure(figsize=(14, 7))
@@ -117,28 +118,25 @@ class Funds:
         plt.ylabel("YTD (%)", fontsize=20, labelpad=30)
         text = plt.title("Top performing and your selected funds(**)", fontsize=24, pad=50)
 
-        # fig_selected.savefig(f"{self.main_folder}uploads/selected.png")
-        # fig_tops.savefig(f"{self.main_folder}uploads/top.png")
-
         b1 = io.BytesIO()
         fig_selected.savefig(b1, format='png', bbox_inches='tight')
-        self.s3_client.put_object(Body=b1.getvalue(), Bucket=bucket_name, Key="fig_selected.png", ACL="public-read")
+        self.s3_client.put_object(Body=b1.getvalue(), Bucket=self.bucket_name, Key="fig_selected.png", ACL="public-read")
         b2 = io.BytesIO()
         fig_tops.savefig(b2, format='png', bbox_extra_artists=(lgd,text), bbox_inches='tight')
-        self.s3_client.put_object(Body=b2.getvalue(), Bucket=bucket_name, Key="fig_tops.png", ACL="public-read")
+        self.s3_client.put_object(Body=b2.getvalue(), Bucket=self.bucket_name, Key="fig_tops.png", ACL="public-read")
 
         sel_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': bucket_name, 'Key': "fig_selected.png"},
+                                            Params={'Bucket': self.bucket_name, 'Key': "fig_selected.png"},
                                             ExpiresIn=3600)
         top_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': bucket_name, 'Key': "fig_tops.png"},
+                                            Params={'Bucket': self.bucket_name, 'Key': "fig_tops.png"},
                                             ExpiresIn=3600)
         pdf = FPDF(unit="in", format="A4")
         pdf.set_font('Arial', 'B', 14)
         pdf.add_page()
-        pdf.image(name="%scorner_left.png" %static_folder, w=.5, x=.1, y=.1)
-        pdf.image(name="%scorner_right.png" %static_folder, w=.5, x=7.7, y=.1)
-        pdf.add_font('Walkway', '', "%sWalkway.ttf" %static_folder, uni=True)
+        pdf.image(name="%scorner_left.png" %self.static_folder, w=.5, x=.1, y=.1)
+        pdf.image(name="%scorner_right.png" %self.static_folder, w=.5, x=7.7, y=.1)
+        pdf.add_font('Walkway', '', "%sWalkway.ttf" %self.static_folder, uni=True)
         pdf.set_font('Walkway', '', 40)
         pdf.cell(1.5)
         pdf.cell(w=0, h=.3, txt="Investment Update", ln=1)
@@ -150,40 +148,9 @@ class Funds:
         pdf.set_y(-.8)
         pdf.cell(w=0, txt="The data is taken from Turkiye Sigorta and the report is created by Ezgi Ogulmus.", link="https://www.turkiyesigorta.com.tr", align="C")      
         content = io.BytesIO(bytes(pdf.output(dest = 'S'), encoding='latin1'))
-        self.s3_client.put_object(Body=content.getvalue(), Bucket=bucket_name, Key="output.pdf", ACL="public-read")
+        self.s3_client.put_object(Body=content.getvalue(), Bucket=self.bucket_name, Key="output.pdf", ACL="public-read")
 
         pdf_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': bucket_name, 'Key': "output.pdf"},
-                                            ExpiresIn=3600)
-        return pdf_url
-
-    def dene(self):
-        sel_url = self.s3_client.generate_presigned_url('get_object',
-                                        Params={'Bucket': bucket_name, 'Key': "fig_selected.png"},
-                                        ExpiresIn=3600)
-        top_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': bucket_name, 'Key': "fig_tops.png"},
-                                            ExpiresIn=3600)
-        pdf = FPDF(unit="in", format="A4")
-        pdf.set_font('Arial', 'B', 14)
-        pdf.add_page()
-        pdf.image(name="%scorner_left.png" %static_folder, w=.5, x=.1, y=.1)
-        pdf.image(name="%scorner_right.png" %static_folder, w=.5, x=7.7, y=.1)
-        pdf.add_font('Walkway', '', "%sWalkway.ttf" %static_folder, uni=True)
-        pdf.set_font('Walkway', '', 40)
-        pdf.cell(1.5)
-        pdf.cell(w=0, h=.3, txt="Investment Update", ln=1)
-        pdf.ln(h=.5)
-        pdf.image(x=1, name=sel_url.split("?", 1)[0], w=6)
-        pdf.ln(h=.5)
-        pdf.image(x=1, name=top_url.split("?", 1)[0], w=7)
-        pdf.set_font('Arial', size=8)
-        pdf.set_y(-.8)
-        pdf.cell(w=0, txt="The data is taken from Turkiye Sigorta and the report is created by Ezgi Ogulmus.", link="https://www.turkiyesigorta.com.tr", align="C")      
-        content = io.BytesIO(bytes(pdf.output(dest = 'S'), encoding='latin1'))
-        self.s3_client.put_object(Body=content.getvalue(), Bucket=bucket_name, Key="output.pdf", ACL="public-read")
-
-        pdf_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': bucket_name, 'Key': "output.pdf"},
+                                            Params={'Bucket': self.bucket_name, 'Key': "output.pdf"},
                                             ExpiresIn=3600)
         return pdf_url

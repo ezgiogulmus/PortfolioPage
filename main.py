@@ -12,7 +12,7 @@ app = Flask(__name__)
 S3_BUCKET = "ezgiyobucket"
 
 MYDIR = os.path.dirname(__file__)
-STATIC_FOLDER = 'static/'
+STATIC_FOLDER = os.path.join(MYDIR, 'static/')
 app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -26,6 +26,7 @@ def home():
 def bes():
     fund = Funds(STATIC_FOLDER, S3_BUCKET)
     fund_names = fund.get_fund_names()
+    fund.get_new_file()
     selected_funds = []
     if request.method == "POST":
         for f in fund_names[0]:
@@ -47,7 +48,7 @@ def bes():
 
 # MORS
 def translate(text):
-    with open(f"{os.path.join(MYDIR, STATIC_FOLDER)}mors.json", "r") as file:
+    with open(f"{STATIC_FOLDER}mors.json", "r") as file:
         alphabet = json.load(file)
     mors = []
     for letter in text:
