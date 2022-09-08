@@ -10,6 +10,8 @@ import requests
 import boto3
 import operator
 import io
+import base64
+from PIL import Image
 
 
 class Funds:
@@ -55,7 +57,7 @@ class Funds:
         driver = Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=opts)
         driver.get(bes_url)
 
-        time.sleep(3)
+        time.sleep(1)
         faizsiz_table = driver.find_element(By.ID, 'GetiriTable').text
 
         name, interest, annually, monthly, weekly = [], [], [], [], []
@@ -70,7 +72,7 @@ class Funds:
         faiz = driver.find_element(By.XPATH, "/html/body/article/div/div/div[2]/div[1]/div[1]/input")
         faiz.click()
 
-        time.sleep(3)
+        time.sleep(1)
         faizli_table = driver.find_element(By.ID, 'GetiriTable').text
 
         for i in faizli_table.split("\n")[1:]:
@@ -105,13 +107,12 @@ class Funds:
         plt.yticks(fontsize=16)
         plt.ylabel("YTD (%)", fontsize=20, labelpad=30)
         plt.title("Year to date change in your selected funds", fontsize=24, pad=50)
-
         
         fig_tops = plt.figure(figsize=(14, 7))
         for i in list(sorted_funds.items())[:10]:
-            plt.bar(i[0], float(i[1].replace(",", ".")), label=i)
+            plt.bar(i[0], float(i[1].replace(",", ".")), label=i[0])
         for s in selection:
-            plt.bar(s, sorted_funds[s], label=f"{s}**")
+            plt.bar(s, float(sorted_funds[s].replace(",", ".")), label=f"{s}**")
         lgd = plt.legend(fontsize=16, bbox_to_anchor=(1, 1), loc="upper left")
         plt.xticks(rotation=45, fontsize=16)
         plt.yticks(fontsize=16)
@@ -120,17 +121,18 @@ class Funds:
 
         b1 = io.BytesIO()
         fig_selected.savefig(b1, format='png', bbox_inches='tight')
-        self.s3_client.put_object(Body=b1.getvalue(), Bucket=self.bucket_name, Key="fig_selected.png", ACL="public-read")
+        b1.seek(0)
+        b1 = base64.b64decode(base64.b64encode(b1.read()))
+        with io.BytesIO(b1) as stream:
+            image1 = Image.open(stream).convert("RGBA")
+
         b2 = io.BytesIO()
         fig_tops.savefig(b2, format='png', bbox_extra_artists=(lgd,text), bbox_inches='tight')
-        self.s3_client.put_object(Body=b2.getvalue(), Bucket=self.bucket_name, Key="fig_tops.png", ACL="public-read")
+        b2.seek(0)
+        b2 = base64.b64decode(base64.b64encode(b2.read()))
+        with io.BytesIO(b2) as stream:
+            image2 = Image.open(stream).convert("RGBA")
 
-        sel_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': self.bucket_name, 'Key': "fig_selected.png"},
-                                            ExpiresIn=3600)
-        top_url = self.s3_client.generate_presigned_url('get_object',
-                                            Params={'Bucket': self.bucket_name, 'Key': "fig_tops.png"},
-                                            ExpiresIn=3600)
         pdf = FPDF(unit="in", format="A4")
         pdf.set_font('Arial', 'B', 14)
         pdf.add_page()
@@ -141,14 +143,13 @@ class Funds:
         pdf.cell(1.5)
         pdf.cell(w=0, h=.3, txt="Investment Update", ln=1)
         pdf.ln(h=.5)
-        pdf.image(x=1, name=sel_url.split("?", 1)[0], w=6)
+        pdf.image(x=1, name=image1, w=6)
         pdf.ln(h=.5)
-        pdf.image(x=1, name=top_url.split("?", 1)[0], w=7)
+        pdf.image(x=1, name=image2, w=7)
         pdf.set_font('Arial', size=8)
-        pdf.set_y(-.8)
-        pdf.cell(w=0, txt="The data is taken from Turkiye Sigorta and the report is created by Ezgi Ogulmus.", link="https://www.turkiyesigorta.com.tr", align="C")      
-        content = io.BytesIO(bytes(pdf.output(dest = 'S'), encoding='latin1'))
-        self.s3_client.put_object(Body=content.getvalue(), Bucket=self.bucket_name, Key="output.pdf", ACL="public-read")
+        pdf.set_y(-1)
+        pdf.cell(w=0, txt="The data is taken from Turkiye Sigorta and the report is created by Ezgi Ogulmus.", link="https://www.turkiyesigorta.com.tr", align="C")  
+        self.s3_client.put_object(Body=io.BytesIO(pdf.output()).getvalue(), Bucket=self.bucket_name, Key="output.pdf", ACL="public-read")
 
         pdf_url = self.s3_client.generate_presigned_url('get_object',
                                             Params={'Bucket': self.bucket_name, 'Key': "output.pdf"},
